@@ -29,8 +29,8 @@ public class CommandPlugins extends Command implements TabExecutor {
             TextComponent pluginComponent = new TextComponent(ChatColor.GREEN + plugin.getDescription().getName());
             pluginComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(
                     ChatColor.WHITE + "Version: " + ChatColor.GREEN + plugin.getDescription().getVersion() +
-                            (plugin.getDescription().getDescription() == null ? "" : "\n" + ChatColor.WHITE + "Description: " + ChatColor.GREEN + plugin.getDescription().getDescription() +
-                                    (plugin.getDescription().getAuthor() == null ? "" : "\n" + ChatColor.WHITE + "Author: " + ChatColor.GREEN + plugin.getDescription().getAuthor())))));
+                            (plugin.getDescription().getDescription() == null ? "" : "\n" + ChatColor.WHITE + "Description: " + ChatColor.GREEN + plugin.getDescription().getDescription()) +
+                            (plugin.getDescription().getAuthor() == null ? "" : "\n" + ChatColor.WHITE + "Author: " + ChatColor.GREEN + plugin.getDescription().getAuthor()))));
             pluginComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/gversion " + plugin.getDescription().getName()));
             component.addExtra(pluginComponent);
             component.addExtra(new TextComponent(index == ProxyServer.getInstance().getPluginManager().getPlugins().size()-1 ? "" : ChatColor.RESET + ", "));
