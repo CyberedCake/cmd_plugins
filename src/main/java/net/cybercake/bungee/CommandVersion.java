@@ -67,9 +67,9 @@ public class CommandVersion extends Command implements TabExecutor {
             }
 
             Collection<String> completions = new TreeSet<>(Collator.getInstance());
-            String toComplete = args[0];
+            String toComplete = args[0].toLowerCase(Locale.ROOT);
             for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
-                if(plugin.getDescription().getName().startsWith(toComplete)) {
+                if(plugin.getDescription().getName().toLowerCase(Locale.ROOT).startsWith(toComplete)) {
                     completions.add(plugin.getDescription().getName());
                 }
             }

@@ -12,9 +12,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.TreeSet;
+import java.util.*;
 
 public class CommandPlugins extends Command implements TabExecutor {
 
@@ -27,9 +25,21 @@ public class CommandPlugins extends Command implements TabExecutor {
         TextComponent component = new TextComponent();
 
         Collection<String> pluginNames = new TreeSet<>(Collator.getInstance());
-        for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) pluginNames.add(plugin.getDescription().getName());
+        int number = 0;
+        for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
+            if(args.length == 0 || args[0].equalsIgnoreCase("all") || !Arrays.asList("modules", "plugins").contains(args[0])) {
+                pluginNames.add(plugin.getDescription().getName());
+                number++;
+            }else if(args[0].equalsIgnoreCase("modules") && plugin.getFile().getParent().contains("modules")) {
+                pluginNames.add(plugin.getDescription().getName());
+                number++;
+            }else if(args[0].equalsIgnoreCase("plugins") && plugin.getFile().getParent().contains("plugins")) {
+                pluginNames.add(plugin.getDescription().getName());
+                number++;
+            }
+        }
 
-        component.addExtra(new TextComponent("Proxy Plugins (" + ProxyServer.getInstance().getPluginManager().getPlugins().size() + "): "));
+        component.addExtra(new TextComponent("Proxy Plugins (" + number + "): "));
         int index=0;
         for(String name : pluginNames) {
             Plugin plugin = ProxyServer.getInstance().getPluginManager().getPlugin(name);
@@ -41,7 +51,7 @@ public class CommandPlugins extends Command implements TabExecutor {
                             (plugin.getDescription().getAuthor() == null ? "" : "\n" + ChatColor.WHITE + "Author: " + ChatColor.GREEN + plugin.getDescription().getAuthor()))));
             pluginComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/gversion " + plugin.getDescription().getName()));
             component.addExtra(pluginComponent);
-            component.addExtra(new TextComponent(index == ProxyServer.getInstance().getPluginManager().getPlugins().size()-1 ? "" : ChatColor.RESET + ", "));
+            component.addExtra(new TextComponent(index == number-1 ? "" : ChatColor.RESET + ", "));
             index++;
         }
 
@@ -50,6 +60,18 @@ public class CommandPlugins extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        if(args.length < 2) {
+            if(Arrays.asList("all", "plugins", "modules").contains(args[0].toLowerCase(Locale.ROOT))) {
+                return new ArrayList<>();
+            }
+
+            ArrayList<String> completions = new ArrayList<>();
+            String toComplete = args[0].toLowerCase(Locale.ROOT);
+            for(String msg : Arrays.asList("all", "plugins", "modules")) {
+                if(msg.toLowerCase(Locale.ROOT).startsWith(toComplete)) completions.add(msg);
+            }
+            return completions;
+        }
         return new ArrayList<>();
     }
 
