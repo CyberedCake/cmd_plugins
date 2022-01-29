@@ -9,9 +9,8 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginDescription;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.text.Collator;
+import java.util.*;
 
 public class CommandVersion extends Command implements TabExecutor {
 
@@ -67,7 +66,7 @@ public class CommandVersion extends Command implements TabExecutor {
                 return new ArrayList<>();
             }
 
-            List<String> completions = new ArrayList<>();
+            Collection<String> completions = new TreeSet<>(Collator.getInstance());
             String toComplete = args[0];
             for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
                 if(plugin.getDescription().getName().startsWith(toComplete)) {

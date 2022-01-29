@@ -11,7 +11,10 @@ import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.TreeSet;
 
 public class CommandPlugins extends Command implements TabExecutor {
 
@@ -23,9 +26,14 @@ public class CommandPlugins extends Command implements TabExecutor {
     public void execute(CommandSender sender, String[] args) {
         TextComponent component = new TextComponent();
 
+        Collection<String> pluginNames = new TreeSet<>(Collator.getInstance());
+        for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) pluginNames.add(plugin.getDescription().getName());
+
         component.addExtra(new TextComponent("Proxy Plugins (" + ProxyServer.getInstance().getPluginManager().getPlugins().size() + "): "));
         int index=0;
-        for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
+        for(String name : pluginNames) {
+            Plugin plugin = ProxyServer.getInstance().getPluginManager().getPlugin(name);
+
             TextComponent pluginComponent = new TextComponent(ChatColor.GREEN + plugin.getDescription().getName());
             pluginComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(
                     ChatColor.WHITE + "Version: " + ChatColor.GREEN + plugin.getDescription().getVersion() +
