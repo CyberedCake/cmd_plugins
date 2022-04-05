@@ -12,10 +12,12 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.json:json:20220320'
+
     compileOnly 'net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT'
 }
 
-def targetJavaVersion = 8
+def targetJavaVersion = 17
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion

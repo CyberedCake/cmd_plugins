@@ -7,6 +7,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 public final class Plugins extends Plugin {
@@ -21,12 +22,28 @@ public final class Plugins extends Plugin {
 
     public Logger log;
 
+    // if you want to add more support for versions, create an issue in GitHub or make it yourself with a pull request :D
+    public enum ServerType { BUNGEECORD, WATERFALL, FLAMECORD, HEXACORD, UNSUPPORTED; }
+
+    public static ServerType serverType;
+    public static int softwareBuildNumber;
+
     @Override
     public void onEnable() {
         log = ProxyServer.getInstance().getLogger();
 
         getProxy().getPluginManager().registerCommand(this, new CommandPlugins());
-        getProxy().getPluginManager().registerCommand(this, new CommandVersion());
+        getProxy().getPluginManager().registerCommand(this, new CommandVersion(log));
+
+        String name = ProxyServer.getInstance().getName();
+        try {
+            serverType = ServerType.valueOf(name.toUpperCase(Locale.ROOT));
+            softwareBuildNumber = SoftwareVersionCheck.currentBuildFromType(serverType);
+            log.info("Found server type to be " + name + " (serverType=" + serverType + ",buildNumber=" + softwareBuildNumber + ")");
+        } catch (Exception exception) {
+            serverType = ServerType.UNSUPPORTED;
+            log.warning("Server type \"" + name + "\" not supported by cmd_plugins! Please use with caution: " + ChatColor.RED + exception);
+        }
 
         currentVersion = this.getDescription().getVersion().split(" ")[0].replace("v", "");
         currentProtocol = Integer.parseInt(this.getDescription().getVersion().split(" ")[1].replace("p", ""));
@@ -35,7 +52,7 @@ public final class Plugins extends Plugin {
 
     public void versionCheck() {
         if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
-            log.warning("Module " + this.getDescription().getName() + " version " + this.getDescription().getVersion() + " cannot check for updates because online mode is false!");
+            log.warning("Module " + this.getDescription().getName() + " version " + this.getDescription().getVersion() + " cannot check for updates because server is in offline mode!");
             return;
         }
         ProxyServer.getInstance().getScheduler().runAsync(this, () -> {
@@ -52,14 +69,14 @@ public final class Plugins extends Plugin {
                     }
                 }
             } catch (Exception exception) {
-                log.severe("Failed version checking for " + this.getDescription().getName() + " version " + this.getDescription().getVersion() + "! " + ChatColor.DARK_GRAY + exception); return;
+                log.severe(ChatColor.RED + "Failed version checking for " + this.getDescription().getName() + " version " + this.getDescription().getVersion() + "! " + ChatColor.DARK_GRAY + exception); return;
             }
 
             if(currentProtocol != latestProtocol && !latestVersion.startsWith("error:")) {
-                log.warning("Module \"" + this.getDescription().getName() + "\" is outdated! The latest version is " + ChatColor.GREEN + latestVersion + ChatColor.YELLOW + ", your version is " + currentVersion + "!");
+                log.warning(ChatColor.YELLOW + "Module \"" + this.getDescription().getName() + "\" is outdated! The latest version is " + ChatColor.GREEN + latestVersion + ChatColor.YELLOW + ", your version is " + ChatColor.GOLD + currentVersion + ChatColor.YELLOW + "!");
                 if (latestProtocol - currentProtocol > 0) {
-                    log.warning("Module \"" + this.getDescription().getName() + "\" is " + ChatColor.RED + (latestProtocol - currentProtocol) + " version(s) " + ChatColor.YELLOW + "behind!");
-                    log.warning("You can download the latest version of module \"" + this.getDescription().getName() + "\" at " + ChatColor.LIGHT_PURPLE + latestDownloadLink + ChatColor.YELLOW + "!");
+                    log.warning(ChatColor.YELLOW + "Module \"" + this.getDescription().getName() + "\" is " + ChatColor.RED + (latestProtocol - currentProtocol) + " version(s) " + ChatColor.YELLOW + "behind!");
+                    log.warning(ChatColor.YELLOW + "You can download the latest version of module \"" + this.getDescription().getName() + "\" at " + ChatColor.LIGHT_PURPLE + latestDownloadLink + ChatColor.YELLOW + "!");
                 }
             }
         });
