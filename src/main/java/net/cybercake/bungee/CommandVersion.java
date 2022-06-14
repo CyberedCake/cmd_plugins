@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class CommandVersion extends Command implements TabExecutor {
 
     public CommandVersion(Logger log) {
-        super("gversion", "bungeecord.command.version", "gver", "gabout");
+        super("gversion", "bungeecord.command.version", "gver", "gabout", "bungee");
         this.log = log;
     }
 

@@ -78,7 +78,13 @@ public class SoftwareVersionCheck {
             }
             case WATERFALL -> {
                 try {
-                    JSONArray json = readJsonFromUrl("https://papermc.io/api/v2/projects/waterfall/versions/1.18/").getJSONArray("builds");
+                    JSONArray json = readJsonFromUrl("https://papermc.io/api/v2/projects/waterfall/").getJSONArray("versions");
+                    String latestMC = "1.19";
+                    for(int i=0; i<1000; i++) {
+                        if(json.isNull(i)) { latestMC = json.getString(i-1); break; }
+                    }
+
+                    json = readJsonFromUrl("https://papermc.io/api/v2/projects/waterfall/versions/" + latestMC).getJSONArray("builds");
                     int finalBuildNumber = 0;
                     for(int i=0; i<1000; i++) {
                         if(json.isNull(i)) { finalBuildNumber = i-1; break; }
@@ -86,7 +92,7 @@ public class SoftwareVersionCheck {
 
                     latestProtocolSoftware = json.getInt(finalBuildNumber);
                     latestVersionSoftware = "none:Waterfall does not provide semantic versioning";
-                    downloadLink = "https://papermc.io/downloads::https://papermc.io/downloads";
+                    downloadLink = "https://papermc.io/downloads::https://papermc.io/downloads#Waterfall";
                 } catch (Exception exception) {
                     latestProtocolSoftware = -1;
                     latestVersionSoftware = "failed:" + exception;
