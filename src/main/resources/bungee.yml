@@ -1,5 +1,5 @@
 name: cmd_plugins
-version: 'v1.2 p5'
+version: 'v1.2.1 p6'
 main: net.cybercake.bungee.Plugins
 description: Provides the plugins and version commands
 author: CyberedCake

@@ -57,15 +57,16 @@ public final class Plugins extends Plugin {
         }
         ProxyServer.getInstance().getScheduler().runAsync(this, () -> {
             try {
-                URL url = new URL("https://raw.githubusercontent.com/CyberedCake/cmd_plugins/main/version.txt");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                URL url = new URL("https://raw.githubusercontent.com/CyberedCake/cmd_plugins/main/src/main/resources/bungee.yml");
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
 
                 String inputLine;
                 while((inputLine = reader.readLine()) != null) {
-                    if(inputLine.startsWith("latestVersion=")) {
-                        latestVersion = inputLine.replace("latestVersion=", "");
-                    }else if(inputLine.startsWith("latestProtocol=")) {
-                        latestProtocol = Integer.parseInt(inputLine.replace("latestProtocol=", ""));
+                    if(inputLine.startsWith("version: '")) {
+                        String line = inputLine.replace("version: '", "");
+                        line = line.substring(0, line.length()-1);
+                        latestVersion = line.split(" ")[0].replace("v", "");
+                        latestProtocol = Integer.parseInt(line.split(" ")[1].replace("p", ""));
                     }
                 }
             } catch (Exception exception) {
