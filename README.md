@@ -1,6 +1,5 @@
 # CMD: Plugins
-This is a module for Waterfall/Bungeecord! That means instead of putting it in the `plugins/` folder, you put it in 
-the `modules/` folder!
+This is a Bungeecord plugin. You can put it in the `modules/` folder or `plugins/` folder. CMDPlugins also attempts to check for updates depending on your server software.
 
 # Installation
 1) Go to [cmd_plugins releases](https://github.com/CyberedCake/cmd_plugins/releases/latest) and download the jar file.
@@ -13,6 +12,7 @@ the `modules/` folder!
 ### The permission for the plugin commands are "bungeecord.command.plugins" and "bungeecord.command.version"
 
 ### Images:
-![/gplugins](ProxyPlugins_Command.png)
-![/gversion](ProxyVersion_Command.png)
-![/gversion Tab Completions](ProxyVersion_TabCompletions.png)
+![/gplugins](assets/ProxyPlugins_Command.png)
+![/gversion](assets/ProxyVersion_Command.png)
+![/gversion command](assets/ProxyVersion_Checker.png)
+![/gversion Tab Completions](assets/ProxyVersion_TabCompletions.png)
