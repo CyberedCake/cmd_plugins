@@ -1,6 +1,5 @@
 package net.cybercake.bungee;
 
-import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import org.json.JSONArray;

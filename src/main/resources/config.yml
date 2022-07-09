@@ -1,0 +1,5 @@
+# cmd_plugins config
+#
+# use "/gversion --reload" to reload
+
+useAlternateVersionMessage: false

@@ -5,14 +5,22 @@ import net.cybercake.bungee.commands.VersionCMD;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.JsonConfiguration;
+import net.md_5.bungee.config.YamlConfiguration;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class Plugins extends Plugin {
+
+    private static Plugins instance;
 
     public String latestVersion = "unknown";
     public int latestProtocol = 0;
@@ -30,8 +38,15 @@ public final class Plugins extends Plugin {
     public static ServerType serverType;
     public static int softwareBuildNumber;
 
+    public static Configuration versionHistory;
+    public static String currentVersionWithMC;
+    public static String previousVersionWithMC;
+
+    public static Configuration config;
+
     @Override
     public void onEnable() {
+        instance = this;
         log = ProxyServer.getInstance().getLogger();
 
         getProxy().getPluginManager().registerCommand(this, new PluginsCMD());
@@ -47,10 +62,70 @@ public final class Plugins extends Plugin {
             log.warning("Server type \"" + name + "\" not supported by cmd_plugins! Please use with caution: " + ChatColor.RED + exception);
         }
 
+        // version history
+        try {
+            String gameVersion = ProxyServer.getInstance().getGameVersion();
+            String minecraft = (gameVersion.split(", ").length > 1 ? gameVersion.split(", ")[gameVersion.split(", ").length-1] : gameVersion);
+            currentVersionWithMC = "git-" + ProxyServer.getInstance().getName() + "-" + SoftwareVersionCheck.currentBuildFromType(serverType) + " (MC: " + minecraft + ")";
+
+            File versionHistoryFile = new File(getDataFolder(), "version-history.json");
+            if(!getDataFolder().exists())
+                getDataFolder().mkdir();
+            if(!versionHistoryFile.exists())
+                versionHistoryFile.createNewFile();
+            versionHistory = ConfigurationProvider.getProvider(JsonConfiguration.class).load(versionHistoryFile);
+
+            if(versionHistory.getString("currentVersion").isBlank()) {
+                versionHistory.set("currentVersion", currentVersionWithMC);
+                versionHistory.set("versionHistory", new ArrayList<>());
+            }
+
+            if(!versionHistory.getString("currentVersion").equalsIgnoreCase(currentVersionWithMC)) {
+                List<String> oldVersions = new ArrayList<>(versionHistory.getStringList("versionHistory"));
+                oldVersions.add(versionHistory.getString("currentVersion"));
+                versionHistory.set("versionHistory", oldVersions);
+                versionHistory.set("currentVersion", currentVersionWithMC);
+            }
+
+            ConfigurationProvider.getProvider(JsonConfiguration.class).save(versionHistory, versionHistoryFile);
+
+            try {
+                previousVersionWithMC = versionHistory.getStringList("versionHistory").get(versionHistory.getStringList("versionHistory").size()-1);
+            } catch (IndexOutOfBoundsException exception) {
+                previousVersionWithMC = null;
+            }
+        } catch (IOException exception) {
+            getLogger().severe("Failed to get/save version history! " + ChatColor.DARK_GRAY + exception);
+        }
+
+        // config
+        try {
+            reloadConfig();
+        } catch (Exception exception) {
+            getLogger().log(Level.SEVERE, "Failed to load the configuration!", exception);
+        }
+
         currentVersion = this.getDescription().getVersion().split(" ")[0].replace("v", "");
         currentProtocol = Integer.parseInt(this.getDescription().getVersion().split(" ")[1].replace("p", ""));
         versionCheck();
     }
+
+    public static void reloadConfig() throws IOException {
+        File configFile = new File(Plugins.getInstance().getDataFolder(), "config.yml");
+        if(!Plugins.getInstance().getDataFolder().exists())
+            Plugins.getInstance().getDataFolder().mkdir();
+
+        if(!configFile.exists()) {
+            FileOutputStream outputStream = new FileOutputStream(configFile);
+            InputStream inputStream = Plugins.getInstance().getResourceAsStream("config.yml");
+            inputStream.transferTo(outputStream);
+        }
+
+        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+        ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, configFile);
+    }
+
+    public static Plugins getInstance() { return instance; }
 
     public void versionCheck() {
         if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
