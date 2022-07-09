@@ -97,14 +97,14 @@ public class VersionCMD extends Command implements TabExecutor {
                     (useAlternateVersionMessage
                             ? new TextComponent(
                                     ChatColor.GRAY + "Current: " + color + Plugins.currentVersionWithMC + "*\n" +
-                                            (Plugins.versionHistory.getStringList("previousVersion").isEmpty() ? "" : ChatColor.GRAY + "Previous: " + Plugins.previousVersionWithMC + "\n") +
+                                            (Plugins.previousVersionWithMC == null ? "" : ChatColor.GRAY + "Previous: " + Plugins.previousVersionWithMC + "\n") +
                                             color + "* " + addToComponent
                     )
                             : new TextComponent(
                                     "This proxy server is running " + ProxyServer.getInstance().getName() + " version " + Plugins.currentVersionWithMC + " (Protocol Version: " + ProxyServer.getInstance().getProtocolVersion() + ")" + "\n" + addToComponent
                     )
                     );
-            if(!Plugins.versionHistory.getStringList("previousVersion").isEmpty() && !useAlternateVersionMessage) component.addExtra(previousVersion);
+            if(Plugins.previousVersionWithMC != null && !useAlternateVersionMessage) component.addExtra(previousVersion);
             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy to clipboard")));
             component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, ChatColor.stripColor(component.getText() + (downloadLatest != null ? downloadLatest.getText() : ""))));
             if(downloadLatest != null) component.addExtra(downloadLatest);
