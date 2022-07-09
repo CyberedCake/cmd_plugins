@@ -1,4 +1,4 @@
-package net.cybercake.bungee;
+package net.cybercake.bungee.commands;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -14,9 +14,9 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.text.Collator;
 import java.util.*;
 
-public class CommandPlugins extends Command implements TabExecutor {
+public class PluginsCMD extends Command implements TabExecutor {
 
-    public CommandPlugins() {
+    public PluginsCMD() {
         super("gplugins", "bungeecord.command.plugins", "gpl");
     }
 

@@ -1,5 +1,7 @@
 package net.cybercake.bungee;
 
+import net.cybercake.bungee.commands.PluginsCMD;
+import net.cybercake.bungee.commands.VersionCMD;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -32,8 +34,8 @@ public final class Plugins extends Plugin {
     public void onEnable() {
         log = ProxyServer.getInstance().getLogger();
 
-        getProxy().getPluginManager().registerCommand(this, new CommandPlugins());
-        getProxy().getPluginManager().registerCommand(this, new CommandVersion(log));
+        getProxy().getPluginManager().registerCommand(this, new PluginsCMD());
+        getProxy().getPluginManager().registerCommand(this, new VersionCMD(log));
 
         String name = ProxyServer.getInstance().getName();
         try {

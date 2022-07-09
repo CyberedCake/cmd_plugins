@@ -1,5 +1,7 @@
-package net.cybercake.bungee;
+package net.cybercake.bungee.commands;
 
+import net.cybercake.bungee.Plugins;
+import net.cybercake.bungee.SoftwareVersionCheck;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -16,9 +18,9 @@ import java.text.Collator;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class CommandVersion extends Command implements TabExecutor {
+public class VersionCMD extends Command implements TabExecutor {
 
-    public CommandVersion(Logger log) {
+    public VersionCMD(Logger log) {
         super("gversion", "bungeecord.command.version", "gver", "gabout", "bungee");
         this.log = log;
     }
