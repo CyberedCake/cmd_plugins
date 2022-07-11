@@ -20,6 +20,7 @@ import net.md_5.bungee.config.YamlConfiguration;
 
 import java.text.Collator;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class VersionCMD extends Command implements TabExecutor {
@@ -38,78 +39,16 @@ public class VersionCMD extends Command implements TabExecutor {
         if(args.length == 0) {
             if(checkingVersion == 1L) {sender.sendMessage(new TextComponent(ChatColor.RED + "Already checking version, please wait!")); return; }
 
-            if(System.currentTimeMillis()-checkingVersion > 600000) {
-                if(ProxyServer.getInstance().getConfig().isOnlineMode() && Plugins.serverType != Plugins.ServerType.UNSUPPORTED && Plugins.serverType != Plugins.ServerType.FLAMECORD) sender.sendMessage(new TextComponent(ChatColor.ITALIC + "Checking version, please wait..."));
-                checkingVersion = 1L;
-                SoftwareVersionCheck.check();
-            }
-
-            boolean useAlternateVersionMessage = Plugins.config.getBoolean("useAlternateVersionMessage");
-            ChatColor color = null;
-            checkingVersion = System.currentTimeMillis();
-
-            String addToComponent;
-            TextComponent downloadLatest = null;
-            TextComponent previousVersion = new TextComponent("\n" + ChatColor.GRAY + "" + ChatColor.ITALIC + "Previous version: " + Plugins.previousVersionWithMC);
-            if (Plugins.serverType.equals(Plugins.ServerType.FLAMECORD)) {
-                color = ChatColor.RED;
-
-                addToComponent = color + "Cannot check latest version with FlameCord";
-
-                downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Download latest version at: ");
-
-                TextComponent link = new TextComponent(ChatColor.GOLD + SoftwareVersionCheck.downloadLink.split("::")[0]);
-                link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to open")));
-                link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, SoftwareVersionCheck.downloadLink.split("::")[1]));
-                downloadLatest.addExtra(link);
-            }else if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
-                color = ChatColor.RED;
-
-                addToComponent = color + "Error obtaining version information (offline mode)";
-                downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Online mode is set to '" + ChatColor.RED + "false" +ChatColor.YELLOW + "' in " + ChatColor.GOLD + "config.yml");
-            }else if(SoftwareVersionCheck.latestProtocolSoftware > Plugins.softwareBuildNumber) {
-                color = ChatColor.YELLOW;
-
-                addToComponent = color + "You are " + (SoftwareVersionCheck.latestProtocolSoftware - Plugins.softwareBuildNumber) + " version(s) behind";
-
-                downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Download the new version at: ");
-
-                TextComponent link = new TextComponent(ChatColor.GOLD + SoftwareVersionCheck.downloadLink.split("::")[0]);
-                link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to open")));
-                link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, SoftwareVersionCheck.downloadLink.split("::")[1]));
-                downloadLatest.addExtra(link);
-            }else if(SoftwareVersionCheck.latestProtocolSoftware == Plugins.softwareBuildNumber) {
-                color = ChatColor.GREEN;
-
-                addToComponent = color + "You are running the latest version";
-            }else if(SoftwareVersionCheck.latestVersionSoftware.equalsIgnoreCase("UNSUPPORTED")) {
-                color = ChatColor.YELLOW;
-
-                addToComponent = color + "Unknown version";
-            }else{
-                color = ChatColor.RED;
-
-                addToComponent = color + "Error obtaining version information";
-                log.severe("An error occurred checking for the latest version: " + ChatColor.DARK_GRAY + "unknown, current/latest: " + Plugins.softwareBuildNumber + "/" + SoftwareVersionCheck.latestProtocolSoftware);
-            }
-
-            TextComponent component =
-                    (useAlternateVersionMessage
-                            ? new TextComponent(
-                                    ChatColor.GRAY + "Current: " + color + Plugins.currentVersionWithMC + "*\n" +
-                                            (Plugins.previousVersionWithMC == null ? "" : ChatColor.GRAY + "Previous: " + Plugins.previousVersionWithMC + "\n") +
-                                            color + "* " + addToComponent
-                    )
-                            : new TextComponent(
-                                    "This proxy server is running " + ProxyServer.getInstance().getName() + " version " + Plugins.currentVersionWithMC + " (Protocol Version: " + ProxyServer.getInstance().getProtocolVersion() + ")" + "\n" + addToComponent
-                    )
-                    );
-            if(Plugins.previousVersionWithMC != null && !useAlternateVersionMessage) component.addExtra(previousVersion);
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy to clipboard")));
-            component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, ChatColor.stripColor(component.getText() + (downloadLatest != null ? downloadLatest.getText() : ""))));
-            if(downloadLatest != null) component.addExtra(downloadLatest);
-
-            sender.sendMessage(component);
+            boolean onlineMode = ProxyServer.getInstance().getConfig().isOnlineMode();
+            ProxyServer.getInstance().getScheduler().runAsync(Plugins.getInstance(), () -> {
+                if(System.currentTimeMillis()-checkingVersion > 600000) {
+                    if(onlineMode && Plugins.serverType != Plugins.ServerType.UNSUPPORTED && Plugins.serverType != Plugins.ServerType.FLAMECORD)
+                        ProxyServer.getInstance().getScheduler().schedule(Plugins.getInstance(), () -> sender.sendMessage(new TextComponent(ChatColor.ITALIC + "Checking version, please wait...")), 0L, TimeUnit.SECONDS);
+                    checkingVersion = 1L;
+                    SoftwareVersionCheck.check();
+                }
+                ProxyServer.getInstance().getScheduler().schedule(Plugins.getInstance(), () -> showVersion(sender, args), 0L, TimeUnit.SECONDS);
+            });
         }else  {
             if(args[0].equalsIgnoreCase("--reload")) {
                 long mss = System.currentTimeMillis();
@@ -148,17 +87,84 @@ public class VersionCMD extends Command implements TabExecutor {
         }
     }
 
+    public void showVersion(CommandSender sender, String[] args) {
+        boolean useAlternateVersionMessage = Plugins.config.getBoolean("useAlternateVersionMessage");
+        ChatColor color = null;
+        checkingVersion = System.currentTimeMillis();
+
+        String addToComponent;
+        TextComponent downloadLatest = null;
+        TextComponent previousVersion = new TextComponent("\n" + ChatColor.GRAY + "" + ChatColor.ITALIC + "Previous version: " + Plugins.previousVersionWithMC);
+        if (Plugins.serverType.equals(Plugins.ServerType.FLAMECORD)) {
+            color = ChatColor.RED;
+
+            addToComponent = color + "Cannot check latest version with FlameCord";
+
+            downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Download latest version at: ");
+
+            TextComponent link = new TextComponent(ChatColor.GOLD + SoftwareVersionCheck.downloadLink.split("::")[0]);
+            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to open")));
+            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, SoftwareVersionCheck.downloadLink.split("::")[1]));
+            downloadLatest.addExtra(link);
+        }else if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
+            color = ChatColor.RED;
+
+            addToComponent = color + "Error obtaining version information (offline mode)";
+            downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Online mode is set to '" + ChatColor.RED + "false" +ChatColor.YELLOW + "' in " + ChatColor.GOLD + "config.yml");
+        }else if(SoftwareVersionCheck.latestProtocolSoftware > Plugins.softwareBuildNumber) {
+            color = ChatColor.YELLOW;
+
+            addToComponent = color + "You are " + (SoftwareVersionCheck.latestProtocolSoftware - Plugins.softwareBuildNumber) + " version(s) behind";
+
+            downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Download the new version at: ");
+
+            TextComponent link = new TextComponent(ChatColor.GOLD + SoftwareVersionCheck.downloadLink.split("::")[0]);
+            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to open")));
+            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, SoftwareVersionCheck.downloadLink.split("::")[1]));
+            downloadLatest.addExtra(link);
+        }else if(SoftwareVersionCheck.latestProtocolSoftware == Plugins.softwareBuildNumber) {
+            color = ChatColor.GREEN;
+
+            addToComponent = color + "You are running the latest version";
+        }else if(SoftwareVersionCheck.latestVersionSoftware.equalsIgnoreCase("UNSUPPORTED")) {
+            color = ChatColor.YELLOW;
+
+            addToComponent = color + "Unknown version";
+        }else{
+            color = ChatColor.RED;
+
+            addToComponent = color + "Error obtaining version information";
+            log.severe("An error occurred checking for the latest version: " + ChatColor.DARK_GRAY + "unknown, current/latest: " + Plugins.softwareBuildNumber + "/" + SoftwareVersionCheck.latestProtocolSoftware);
+        }
+
+        TextComponent component =
+                (useAlternateVersionMessage
+                        ? new TextComponent(
+                        ChatColor.GRAY + "Current: " + color + Plugins.currentVersionWithMC + "*\n" +
+                                (Plugins.previousVersionWithMC == null ? "" : ChatColor.GRAY + "Previous: " + Plugins.previousVersionWithMC + "\n") +
+                                color + "* " + addToComponent
+                )
+                        : new TextComponent(
+                        "This proxy server is running " + ProxyServer.getInstance().getName() + " version " + Plugins.currentVersionWithMC + " (Protocol Version: " + ProxyServer.getInstance().getProtocolVersion() + ")" + "\n" + addToComponent
+                )
+                );
+        if(Plugins.previousVersionWithMC != null && !useAlternateVersionMessage) component.addExtra(previousVersion);
+        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy to clipboard")));
+        component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, ChatColor.stripColor(component.getText() + (downloadLatest != null ? downloadLatest.getText() : ""))));
+        if(downloadLatest != null) component.addExtra(downloadLatest);
+
+        sender.sendMessage(component);
+    }
+
     public void showPlugin(CommandSender sender, Plugin plugin) {
         PluginDescription desc = plugin.getDescription();
         sender.sendMessage(new TextComponent(ChatColor.GREEN + desc.getName() + ChatColor.WHITE + " version " + ChatColor.GREEN + desc.getVersion()));
 
-        if(desc.getDescription() != null) {
+        if(desc.getDescription() != null)
             sender.sendMessage(new TextComponent(desc.getDescription()));
-        }
 
-        if(desc.getAuthor() != null) {
+        if(desc.getAuthor() != null)
             sender.sendMessage(new TextComponent("Author: " + ChatColor.GREEN + desc.getAuthor()));
-        }
     }
 
     @Override
