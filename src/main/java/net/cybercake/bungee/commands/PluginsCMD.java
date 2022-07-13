@@ -1,5 +1,6 @@
 package net.cybercake.bungee.commands;
 
+import net.cybercake.bungee.Plugins;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -60,18 +61,8 @@ public class PluginsCMD extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if(args.length < 2) {
-            if(Arrays.asList("all", "plugins", "modules").contains(args[0].toLowerCase(Locale.ROOT))) {
-                return new ArrayList<>();
-            }
-
-            ArrayList<String> completions = new ArrayList<>();
-            String toComplete = args[0].toLowerCase(Locale.ROOT);
-            for(String msg : Arrays.asList("all", "plugins", "modules")) {
-                if(msg.toLowerCase(Locale.ROOT).startsWith(toComplete)) completions.add(msg);
-            }
-            return completions;
-        }
+        if(args.length < 2)
+            return Plugins.getInstance().getTabCompletions(args[0], List.of("all", "modules", "plugins"));
         return new ArrayList<>();
     }
 

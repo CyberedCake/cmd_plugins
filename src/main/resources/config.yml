@@ -3,3 +3,4 @@
 # use "/gversion --reload" to reload
 
 useAlternateVersionMessage: false
+useAlternatePluginVersionMessage: false

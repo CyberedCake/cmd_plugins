@@ -1,10 +1,12 @@
 package net.cybercake.bungee.commands;
 
+import io.netty.bootstrap.ServerBootstrap;
 import net.cybercake.bungee.Plugins;
 import net.cybercake.bungee.SoftwareVersionCheck;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,13 +15,10 @@ import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginDescription;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import net.md_5.bungee.chat.BaseComponentSerializer;
-import net.md_5.bungee.chat.ComponentSerializer;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
 
-import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -56,18 +55,40 @@ public class VersionCMD extends Command implements TabExecutor {
                 try {
                     Plugins.reloadConfig();
 
-                    sender.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded the configuration in " + (System.currentTimeMillis()-mss) + "ms!"));
+                    sender.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded the configuration in " + ChatColor.YELLOW + (System.currentTimeMillis()-mss) + "ms" + ChatColor.GREEN + "!"));
                 } catch (Exception exception) {
                     sender.sendMessage(new TextComponent(ChatColor.RED + "Failed to reload the configuration: " + ChatColor.DARK_GRAY + exception));
                 }
 
+                return;
+            }else if(args[0].equalsIgnoreCase("--delcache")) {
+                checkingVersion = -1L;
+                SoftwareVersionCheck.latestProtocolSoftware = -1;
+                SoftwareVersionCheck.latestVersionSoftware = "0.0.0";
+                SoftwareVersionCheck.downloadLink = "Failed to get download link!::an error occurred!";
+                sender.sendMessage(new TextComponent(
+                        ChatColor.GREEN + "Deleted the cache for " + ChatColor.YELLOW + this.getClass().getCanonicalName() + ChatColor.GREEN + " and " + ChatColor.YELLOW + SoftwareVersionCheck.class.getCanonicalName() + ChatColor.GREEN + "!"
+                ));
+
+                return;
+            }else if(args[0].startsWith("--plugininfo:")) {
+                final String pluginString = args[0].substring("--plugininfo:".length());
+                final Plugin plugin = ProxyServer.getInstance().getPluginManager().getPlugin(pluginString);
+                if(plugin == null) {
+                    sender.sendMessage(new TextComponent(ChatColor.RED + "Unknown plugin: " + ChatColor.DARK_GRAY + pluginString)); return;
+                }
+                showAlternatePluginVersion(sender, plugin);
+                return;
+            }else if(args[0].startsWith("--")) {
+                sender.sendMessage(new TextComponent(ChatColor.RED + "Unknown flag: " + ChatColor.DARK_GRAY + args[0].substring(2)));
                 return;
             }
 
             String pluginName = args[0];
             Plugin exactPlugin = ProxyServer.getInstance().getPluginManager().getPlugin(pluginName);
             if(exactPlugin != null) {
-                showPlugin(sender, exactPlugin);
+                if(Plugins.config.getBoolean("useAlternatePluginVersionMessage")) showAlternatePluginVersion(sender, exactPlugin);
+                else showPlugin(sender, exactPlugin);
                 return;
             }
 
@@ -75,7 +96,8 @@ public class VersionCMD extends Command implements TabExecutor {
             pluginName = pluginName.toLowerCase(Locale.ROOT);
             for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
                 if(plugin.getDescription().getName().toLowerCase(Locale.ROOT).contains(pluginName)) {
-                    showPlugin(sender, plugin);
+                    if(Plugins.config.getBoolean("useAlternatePluginVersionMessage")) showAlternatePluginVersion(sender, plugin);
+                    else showPlugin(sender, plugin);
                     found = true;
                 }
             }
@@ -87,9 +109,59 @@ public class VersionCMD extends Command implements TabExecutor {
         }
     }
 
+    private BaseComponent getPluginInfo(String field, String value, boolean hover) {
+        TextComponent returned = new TextComponent();
+        TextComponent beginning = new TextComponent(ChatColor.GREEN + field + ChatColor.WHITE + ": ");
+        TextComponent ending = new TextComponent((hover ? (ChatColor.DARK_GRAY + ChatColor.ITALIC.toString()) + "hover for " + field : ChatColor.YELLOW + value));
+        if(hover)
+            ending.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + value)));
+        returned.addExtra(beginning);
+        returned.addExtra(ending);
+        return returned;
+    }
+
+    public void showAlternatePluginVersion(CommandSender sender, Plugin plugin) {
+        final String separator = (ChatColor.BLUE + ChatColor.STRIKETHROUGH.toString() + " ").repeat(100);
+
+        sender.sendMessage(new TextComponent(separator));
+        sender.sendMessage(new TextComponent(
+                (ChatColor.GREEN + ChatColor.BOLD.toString()) + plugin.getDescription().getName() + " " + ChatColor.DARK_GRAY + "(" + ChatColor.YELLOW + plugin.getDescription().getVersion() + ChatColor.DARK_GRAY + ")"
+        ));
+        sender.sendMessage(new TextComponent(" "));
+
+        if(plugin.getDescription().getDescription() != null) sender.sendMessage(getPluginInfo("Description", plugin.getDescription().getDescription(), false));
+        if(plugin.getDescription().getAuthor() != null) sender.sendMessage(getPluginInfo("Author", plugin.getDescription().getAuthor(), false));
+        if(plugin.getDescription().getMain() != null) sender.sendMessage(getPluginInfo("Main Class", plugin.getDescription().getMain(), false));
+        if(plugin.getDescription().getFile() != null)
+            sender.sendMessage(getPluginInfo("File",
+                    ChatColor.GREEN + "File Path" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDescription().getFile().getPath() + "\n" +
+                            ChatColor.GREEN + "File Absolute Path" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDescription().getFile().getAbsolutePath() + "\n\n" +
+                            ChatColor.GREEN + "Data Folder Path" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDataFolder().getPath() + "\n" +
+                            ChatColor.GREEN + "Data Folder Absolute Path" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDataFolder().getAbsolutePath()
+                    , true));
+        if(plugin.getDescription().getDepends().size() != 0) sender.sendMessage(getPluginInfo("Depends",
+                ChatColor.GREEN + "Amount of Depends" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDescription().getDepends().size() + "\n" +
+                        ChatColor.GREEN + "Depends" + ChatColor.WHITE + ": " + ChatColor.GOLD + String.join(", ", plugin.getDescription().getDepends())
+                , true));
+        if(plugin.getDescription().getSoftDepends().size() != 0) sender.sendMessage(getPluginInfo("Soft Depends",
+                ChatColor.GREEN + "Amount of Soft Depends" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getDescription().getSoftDepends().size() + "\n" +
+                        ChatColor.GREEN + "Soft Depends" + ChatColor.WHITE + ": " + ChatColor.GOLD + String.join(", ", plugin.getDescription().getSoftDepends())
+                , true));
+        if(plugin.getDescription().getLibraries().size() != 0) sender.sendMessage(getPluginInfo("Libraries",
+                ChatColor.GREEN + "Libraries" + ChatColor.WHITE + ": " + ChatColor.GOLD + String.join(", ", plugin.getDescription().getLibraries())
+                , true));
+        if(plugin.getLogger() != null) sender.sendMessage(getPluginInfo("Logger",
+                ChatColor.GREEN + "Logger Name" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getLogger().getName() + "\n" +
+                        ChatColor.GREEN + "Logger Class" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getLogger().getClass().getCanonicalName() + "\n\n" +
+                        ChatColor.GREEN + "Logger Parent Name" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getLogger().getParent().getName() + "\n" +
+                        ChatColor.GREEN + "Logger Parent Class" + ChatColor.WHITE + ": " + ChatColor.GOLD + plugin.getLogger().getParent().getClass().getCanonicalName()
+                , true));
+        sender.sendMessage(new TextComponent(separator));
+    }
+
     public void showVersion(CommandSender sender, String[] args) {
         boolean useAlternateVersionMessage = Plugins.config.getBoolean("useAlternateVersionMessage");
-        ChatColor color = null;
+        ChatColor color;
         checkingVersion = System.currentTimeMillis();
 
         String addToComponent;
@@ -170,20 +242,25 @@ public class VersionCMD extends Command implements TabExecutor {
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         if(args.length < 2) {
-            if(ProxyServer.getInstance().getPluginManager().getPlugin(args[0]) != null) {
+            if(ProxyServer.getInstance().getPluginManager().getPlugin(args[0]) != null)
                 return new ArrayList<>();
-            }
 
-            if(args[0].startsWith("--")) return List.of("--reload");
-
-            Collection<String> completions = new TreeSet<>(Collator.getInstance());
-            String toComplete = args[0].toLowerCase(Locale.ROOT);
-            for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
-                if(plugin.getDescription().getName().toLowerCase(Locale.ROOT).startsWith(toComplete)) {
-                    completions.add(plugin.getDescription().getName());
-                }
+            List<String> plugins = new ArrayList<>(
+                    ProxyServer.getInstance().getPluginManager().getPlugins()
+                            .stream()
+                            .map(item -> item.getDescription().getName())
+                            .toList()
+            );
+            if(args[0].startsWith("--")) {
+                if (args[0].startsWith("--plugininfo"))
+                    return Plugins.getInstance().getTabCompletions(args[0], plugins
+                            .stream()
+                            .map(item -> "--plugininfo:" + item)
+                            .toList()
+                    );
+                return Plugins.getInstance().getTabCompletions(args[0], List.of("--reload", "--delcache", "--plugininfo"));
             }
-            return completions;
+            return Plugins.getInstance().getTabCompletions(args[0], plugins);
         }
         return new ArrayList<>();
     }

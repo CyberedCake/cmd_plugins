@@ -12,9 +12,8 @@ import net.md_5.bungee.config.YamlConfiguration;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.text.Collator;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -158,6 +157,14 @@ public final class Plugins extends Plugin {
                 }
             }
         });
+    }
+
+    public Iterable<String> getTabCompletions(String argument, List<String> completions) {
+        List<String> matching = completions.stream().filter(argument::equals).toList();
+        if(matching.size() == 1 && matching.get(0).equalsIgnoreCase(argument)) return new ArrayList<>();
+        Collection<String> returned = new TreeSet<>(Collator.getInstance(Locale.ROOT));
+        returned.addAll(completions.stream().filter(item -> item.toLowerCase(Locale.ROOT).startsWith(argument.toLowerCase(Locale.ROOT))).toList());
+        return returned;
     }
 
 }
