@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
-group = 'net.cybercake.bungee.module.cmd.plugins'
-version = '1.0.0'
+group = 'net.cybercake.bungee'
+version = 'v1.4'
 
 repositories {
     mavenCentral()

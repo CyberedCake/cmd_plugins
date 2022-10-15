@@ -128,7 +128,7 @@ public final class Plugins extends Plugin {
 
     public void versionCheck() {
         if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
-            log.warning("Module " + this.getDescription().getName() + " version " + this.getDescription().getVersion() + " cannot check for updates because server is in offline mode!");
+            log.warning(this.getDescription().getName() + " version " + this.getDescription().getVersion() + " cannot check for updates because server is in offline mode!");
             return;
         }
         ProxyServer.getInstance().getScheduler().runAsync(this, () -> {
@@ -150,10 +150,10 @@ public final class Plugins extends Plugin {
             }
 
             if(currentProtocol != latestProtocol && !latestVersion.startsWith("error:")) {
-                log.warning(ChatColor.YELLOW + "Module \"" + this.getDescription().getName() + "\" is outdated! The latest version is " + ChatColor.GREEN + latestVersion + ChatColor.YELLOW + ", your version is " + ChatColor.GOLD + currentVersion + ChatColor.YELLOW + "!");
+                log.warning(ChatColor.YELLOW + "\"" + this.getDescription().getName() + "\" is outdated! The latest version is " + ChatColor.GREEN + latestVersion + ChatColor.YELLOW + ", your version is " + ChatColor.GOLD + currentVersion + ChatColor.YELLOW + "!");
                 if (latestProtocol - currentProtocol > 0) {
-                    log.warning(ChatColor.YELLOW + "Module \"" + this.getDescription().getName() + "\" is " + ChatColor.RED + (latestProtocol - currentProtocol) + " version(s) " + ChatColor.YELLOW + "behind!");
-                    log.warning(ChatColor.YELLOW + "You can download the latest version of module \"" + this.getDescription().getName() + "\" at " + ChatColor.LIGHT_PURPLE + latestDownloadLink + ChatColor.YELLOW + "!");
+                    log.warning(ChatColor.YELLOW + "\"" + this.getDescription().getName() + "\" is " + ChatColor.RED + (latestProtocol - currentProtocol) + " version(s) " + ChatColor.YELLOW + "behind!");
+                    log.warning(ChatColor.YELLOW + "You can download the latest version of \"" + this.getDescription().getName() + "\" at " + ChatColor.LIGHT_PURPLE + latestDownloadLink + ChatColor.YELLOW + "!");
                 }
             }
         });
