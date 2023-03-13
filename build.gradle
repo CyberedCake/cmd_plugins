@@ -1,4 +1,7 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version "8.1.0"
+}
 
 group = 'net.cybercake.bungee'
 version = 'v1.4'
@@ -15,6 +18,15 @@ dependencies {
     implementation 'org.json:json:20220924'
 
     compileOnly 'net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT'
+}
+
+shadowJar {
+    archiveClassifier = null
+}
+
+jar {
+    enabled = false
+    dependsOn(shadowJar)
 }
 
 def targetJavaVersion = 17
