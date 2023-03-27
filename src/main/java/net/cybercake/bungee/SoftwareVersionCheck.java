@@ -43,7 +43,6 @@ public class SoftwareVersionCheck {
     public static int currentBuildFromType(Plugins.ServerType serverType) {
         return switch(serverType) {
             case BUNGEECORD, WATERFALL, HEXACORD -> Integer.parseInt(ProxyServer.getInstance().getVersion().split(":")[4]);
-            case FLAMECORD -> -1;
             case UNSUPPORTED -> -3;
         };
     }
@@ -109,7 +108,6 @@ public class SoftwareVersionCheck {
                     log.severe("Failed to check for the latest version: " + ChatColor.DARK_GRAY + exception);
                 }
             }
-            case FLAMECORD -> downloadLink = "ci.2lstudios.dev/job/FlameCord::https://ci.2lstudios.dev/job/FlameCord/";
             case UNSUPPORTED -> {
                 latestProtocolSoftware = -2;
                 latestVersionSoftware = "UNSUPPORTED";

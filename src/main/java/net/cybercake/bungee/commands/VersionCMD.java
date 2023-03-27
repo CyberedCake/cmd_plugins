@@ -41,7 +41,7 @@ public class VersionCMD extends Command implements TabExecutor {
             boolean onlineMode = ProxyServer.getInstance().getConfig().isOnlineMode();
             ProxyServer.getInstance().getScheduler().runAsync(Plugins.getInstance(), () -> {
                 if(System.currentTimeMillis()-checkingVersion > 600000) {
-                    if(onlineMode && Plugins.serverType != Plugins.ServerType.UNSUPPORTED && Plugins.serverType != Plugins.ServerType.FLAMECORD)
+                    if(onlineMode && Plugins.serverType != Plugins.ServerType.UNSUPPORTED)
                         ProxyServer.getInstance().getScheduler().schedule(Plugins.getInstance(), () -> sender.sendMessage(new TextComponent(ChatColor.ITALIC + "Checking version, please wait...")), 0L, TimeUnit.SECONDS);
                     checkingVersion = 1L;
                     SoftwareVersionCheck.check();
@@ -167,18 +167,7 @@ public class VersionCMD extends Command implements TabExecutor {
         String addToComponent;
         TextComponent downloadLatest = null;
         TextComponent previousVersion = new TextComponent("\n" + ChatColor.GRAY + "" + ChatColor.ITALIC + "Previous version: " + Plugins.previousVersionWithMC);
-        if (Plugins.serverType.equals(Plugins.ServerType.FLAMECORD)) {
-            color = ChatColor.RED;
-
-            addToComponent = color + "Cannot check latest version with FlameCord";
-
-            downloadLatest = new TextComponent("\n" + ChatColor.YELLOW + "Download latest version at: ");
-
-            TextComponent link = new TextComponent(ChatColor.GOLD + SoftwareVersionCheck.downloadLink.split("::")[0]);
-            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to open")));
-            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, SoftwareVersionCheck.downloadLink.split("::")[1]));
-            downloadLatest.addExtra(link);
-        }else if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
+        if(!ProxyServer.getInstance().getConfig().isOnlineMode()) {
             color = ChatColor.RED;
 
             addToComponent = color + "Error obtaining version information (offline mode)";

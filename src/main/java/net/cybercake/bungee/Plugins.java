@@ -32,7 +32,7 @@ public final class Plugins extends Plugin {
     public Logger log;
 
     // if you want to add more support for versions, create an issue in GitHub or make it yourself with a pull request :D
-    public enum ServerType { BUNGEECORD, WATERFALL, FLAMECORD, HEXACORD, UNSUPPORTED; }
+    public enum ServerType { BUNGEECORD, WATERFALL, HEXACORD, UNSUPPORTED; }
 
     public static ServerType serverType;
     public static int softwareBuildNumber;
