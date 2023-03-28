@@ -2,5 +2,6 @@
 #
 # use "/gversion --reload" to reload
 
+useAlternatePluginsMessage: false
 useAlternateVersionMessage: false
-useAlternatePluginVersionMessage: false
+useAlternatePluginSpecificVersionMessage: false

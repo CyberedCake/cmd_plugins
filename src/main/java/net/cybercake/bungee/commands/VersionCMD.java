@@ -1,6 +1,5 @@
 package net.cybercake.bungee.commands;
 
-import io.netty.bootstrap.ServerBootstrap;
 import net.cybercake.bungee.Plugins;
 import net.cybercake.bungee.SoftwareVersionCheck;
 import net.md_5.bungee.api.ChatColor;
@@ -120,7 +119,7 @@ public class VersionCMD extends Command implements TabExecutor {
         return returned;
     }
 
-    public void showAlternatePluginVersion(CommandSender sender, Plugin plugin) {
+    private void showAlternatePluginVersion(CommandSender sender, Plugin plugin) {
         final String separator = (ChatColor.BLUE + ChatColor.STRIKETHROUGH.toString() + " ").repeat(100);
 
         sender.sendMessage(new TextComponent(separator));
@@ -159,7 +158,7 @@ public class VersionCMD extends Command implements TabExecutor {
         sender.sendMessage(new TextComponent(separator));
     }
 
-    public void showVersion(CommandSender sender, String[] args) {
+    private void showVersion(CommandSender sender, String[] args) {
         boolean useAlternateVersionMessage = Plugins.config.getBoolean("useAlternateVersionMessage");
         ChatColor color;
         checkingVersion = System.currentTimeMillis();
