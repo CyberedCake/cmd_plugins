@@ -86,7 +86,7 @@ public class VersionCMD extends Command implements TabExecutor {
             String pluginName = args[0];
             Plugin exactPlugin = ProxyServer.getInstance().getPluginManager().getPlugin(pluginName);
             if(exactPlugin != null) {
-                if(Plugins.config.getBoolean("useAlternatePluginVersionMessage")) showAlternatePluginVersion(sender, exactPlugin);
+                if(Plugins.config.getBoolean("useAlternatePluginSpecificVersionMessage")) showAlternatePluginVersion(sender, exactPlugin);
                 else showPlugin(sender, exactPlugin);
                 return;
             }
@@ -95,7 +95,7 @@ public class VersionCMD extends Command implements TabExecutor {
             pluginName = pluginName.toLowerCase(Locale.ROOT);
             for(Plugin plugin : ProxyServer.getInstance().getPluginManager().getPlugins()) {
                 if(plugin.getDescription().getName().toLowerCase(Locale.ROOT).contains(pluginName)) {
-                    if(Plugins.config.getBoolean("useAlternatePluginVersionMessage")) showAlternatePluginVersion(sender, plugin);
+                    if(Plugins.config.getBoolean("useAlternatePluginSpecificVersionMessage")) showAlternatePluginVersion(sender, plugin);
                     else showPlugin(sender, plugin);
                     found = true;
                 }
