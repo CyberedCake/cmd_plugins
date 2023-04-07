@@ -89,7 +89,7 @@ public class SoftwareVersionCheck {
 
                     latestProtocolSoftware = json.getInt(finalBuildNumber);
                     latestVersionSoftware = "none:Waterfall does not provide semantic versioning";
-                    downloadLink = "https://papermc.io/downloads::https://papermc.io/downloads#Waterfall";
+                    downloadLink = "https://papermc.io/downloads::https://papermc.io/downloads/waterfall";
                 } catch (Exception exception) {
                     latestProtocolSoftware = -1;
                     latestVersionSoftware = "failed:" + exception;
