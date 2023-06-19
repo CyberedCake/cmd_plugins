@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.json:json:20230227'
+    implementation 'org.json:json:20230618'
 
     compileOnly 'net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT'
 }
